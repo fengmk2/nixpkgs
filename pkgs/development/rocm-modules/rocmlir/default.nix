@@ -54,7 +54,7 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocMLIR";
-    rev = "rocm-${finalAttrs.version}";
+    tag = "rocm-${finalAttrs.version}";
     hash = "sha256-0OvQT8pX6GbEqUwuauKGI66IHw8dsnt5mIijnzYyiRc=";
   };
 
@@ -139,7 +139,7 @@ stdenv.mkDerivation (finalAttrs: {
         stdenv.cc.cc
       ];
     in
-    lib.optionals (!buildRockCompiler) ''
+    lib.optionalString (!buildRockCompiler) ''
       mkdir -p $external/lib
       cp -a external/llvm-project/llvm/lib/{*.a*,*.so*} $external/lib
       patchelf --set-rpath $external/lib:$out/lib:${libPath} $external/lib/*.so*
@@ -154,7 +154,7 @@ stdenv.mkDerivation (finalAttrs: {
   meta = {
     description = "MLIR-based convolution and GEMM kernel generator";
     homepage = "https://github.com/ROCm/rocMLIR";
-    license = with lib.licenses; [ asl20 ];
+    license = lib.licenses.asl20;
     teams = [ lib.teams.rocm ];
     platforms = lib.platforms.linux;
   };

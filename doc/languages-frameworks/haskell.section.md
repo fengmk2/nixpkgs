@@ -679,7 +679,7 @@ Defaults to `false`.
 
 `genericBuilderArgsModifier`
 : This argument accepts a function allowing you to modify the arguments passed
-to `mkDerivation` in order to create the development environment. For example,
+to `mkDerivation` to create the development environment. For example,
 `args: { doCheck = false; }` would cause the environment to not include any test
 dependencies. Defaults to `lib.id`.
 
@@ -688,7 +688,7 @@ dependencies. Defaults to `lib.id`.
 Setting it to `true` will cause the development environment to include all
 benchmark dependencies which would be excluded by default. Defaults to `false`.
 
-One neat property of `shellFor` is that it allows you to work on multiple
+One neat property of `shellFor` is that it supports multiple
 packages using the same environment in conjunction with
 [cabal.project files][cabal-project-files].
 Say our example above depends on `distribution-nixpkgs` and we have a project

@@ -4,6 +4,11 @@
   ...
 }:
 {
+  runtimeInputs = [
+    # tree-root uses `git rev-parse --show-toplevel`
+    pkgs.gitMinimal
+  ];
+
   settings = {
     # numtide/treefmt-nix defaults
     excludes = [
@@ -33,6 +38,11 @@
         includes = [
           ".github/workflows/*.yml"
           ".github/workflows/*.yaml"
+        ];
+        options = [
+          # Support self-repository syntax
+          ''-ignore=reusable workflow call "\$/.+" at "uses" is not following the format''
+          ''-ignore=specifying action "\$/.+" in invalid format because ref is missing.''
         ];
       };
 
@@ -118,8 +128,6 @@
           "--ignore=sema-unused-def-lambda-witharg-arg"
           "--ignore=sema-unused-def-lambda-witharg-formal"
           "--ignore=sema-unused-def-let"
-          # Keep this rule, because we have `lib.or`.
-          "--ignore=or-identifier"
           # TODO: remove after outstanding prelude diagnostics issues are fixed:
           # https://github.com/nix-community/nixd/issues/761
           # https://github.com/nix-community/nixd/issues/762

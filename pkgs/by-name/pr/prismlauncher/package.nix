@@ -11,14 +11,16 @@
   kdePackages,
   lib,
   libGL,
-  libx11,
-  libxcursor,
-  libxext,
-  libxrandr,
-  libxxf86vm,
+  libdecor,
   libjack2,
   libpulseaudio,
   libusb1,
+  libx11,
+  libxcursor,
+  libxext,
+  libxkbcommon,
+  libxrandr,
+  libxxf86vm,
   openal,
   pciutils,
   pipewire,
@@ -27,6 +29,7 @@
   symlinkJoin,
   udev,
   vulkan-loader,
+  wayland,
   wrapGAppsHook3,
   xrandr,
 
@@ -103,6 +106,9 @@ symlinkJoin {
         libxext
         libxrandr
         libxxf86vm
+        wayland
+        libdecor
+        libxkbcommon
 
         udev # oshi
 
@@ -120,7 +126,10 @@ symlinkJoin {
       ++ additionalPrograms;
 
     in
-    [ "--prefix PRISMLAUNCHER_JAVA_PATHS : ${lib.makeSearchPath "bin/java" jdks}" ]
+    [
+      "--set NIX_LAUNCHER_WRAPPER ${placeholder "out"}/bin/prismlauncher"
+      "--prefix PRISMLAUNCHER_JAVA_PATHS : ${lib.makeSearchPath "bin/java" jdks}"
+    ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--set LD_LIBRARY_PATH ${addDriverRunpath.driverLink}/lib:${lib.makeLibraryPath runtimeLibs}"
       "--prefix PATH : ${lib.makeBinPath runtimePrograms}"
@@ -137,5 +146,6 @@ symlinkJoin {
       mainProgram
       platforms
       ;
+    identifiers = { inherit (prismlauncher'.meta.identifiers) cpeParts; };
   };
 }

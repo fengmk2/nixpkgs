@@ -31,13 +31,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "xournalpp";
-  version = "1.3.5";
+  version = "1.3.8";
 
   src = fetchFromGitHub {
     owner = "xournalpp";
     repo = "xournalpp";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-JvB9Oh56ujg7L+q1wTuLsel9Wl2Fyoz9nnz0m/mGxAU=";
+    hash = "sha256-IQxWLKxcJOncDSzei18+CzE8RJ4b6bcUBS5iXmE4sQw=";
   };
 
   nativeBuildInputs = [
@@ -66,6 +66,11 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.optional withLua lua5_3;
 
   buildFlags = [ "translations" ];
+
+  postInstall = lib.optionalString stdenv.hostPlatform.isLinux ''
+    substituteInPlace $out/share/thumbnailers/com.github.xournalpp.xournalpp.thumbnailer \
+      --replace-fail "Exec=xournalpp-thumbnailer" "Exec=$out/bin/xournalpp-thumbnailer"
+  '';
 
   preFixup = ''
     gappsWrapperArgs+=(

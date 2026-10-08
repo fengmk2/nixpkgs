@@ -10,16 +10,18 @@
   requests,
   setuptools,
   tqdm,
+  pytestCheckHook,
+  writableTmpDirAsHomeHook,
 }:
 
 buildPythonPackage (finalAttrs: {
   pname = "gdown";
-  version = "6.1.0";
+  version = "6.4.0";
   pyproject = true;
 
   src = fetchPypi {
     inherit (finalAttrs) pname version;
-    hash = "sha256-NhxuBMbKM131C51x9AvP6atw+yahsOiQpCcmd4E4lVM=";
+    hash = "sha256-4MkBpNhHs91IL1VucWcm+/a6yhx7BGdX2UiyR+63yCI=";
   };
 
   build-system = [
@@ -37,9 +39,18 @@ buildPythonPackage (finalAttrs: {
   ]
   ++ requests.optional-dependencies.socks;
 
-  checkPhase = ''
-    $out/bin/gdown --help > /dev/null
-  '';
+  nativeCheckInputs = [
+    pytestCheckHook
+    writableTmpDirAsHomeHook
+  ];
+
+  disabledTestPaths = [
+    # requires network
+    "tests/test___main__.py"
+    "tests/test_cached_download.py"
+    "tests/test_download.py"
+    "tests/test_download_folder.py"
+  ];
 
   pythonImportsCheck = [ "gdown" ];
 

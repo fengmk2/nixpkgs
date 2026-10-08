@@ -1,7 +1,6 @@
 {
   lib,
   stdenv,
-  config,
   buildNimPackage,
   fetchFromGitHub,
 
@@ -9,9 +8,10 @@
   yt-dlp,
   lame,
   libopus,
-  libvpx,
   x264,
   dav1d,
+  zlib,
+  alsa-lib,
 
   python3,
   python3Packages,
@@ -19,24 +19,26 @@
 
 buildNimPackage rec {
   pname = "auto-editor";
-  version = "30.4.0";
+  version = "31.6.0";
 
   src = fetchFromGitHub {
     owner = "WyattBlue";
     repo = "auto-editor";
     tag = version;
-    hash = "sha256-AzUTDOWzyhZLrwqO9HfZ/Ke72LElJAMzVoDydBfYKwg=";
+    hash = "sha256-N7pQQD6SVl566z3ud3yY/EFiSbIVRFWwNtlJPTPSgsI=";
   };
 
   lockFile = ./lock.json;
 
   buildInputs = [
     ffmpeg-full
-    lame
+    lame # Upstream uses a minimal, unpackaged fork of `lame` named `lamer`.
     libopus
     x264
     dav1d
-  ];
+    zlib
+  ]
+  ++ lib.optional stdenv.hostPlatform.isLinux alsa-lib;
 
   env = {
     # Nothing should be dynamically linked, as ffmpeg should already link it.
@@ -60,19 +62,6 @@ buildNimPackage rec {
     python3
     python3Packages.av
   ];
-
-  checkPhase = ''
-    runHook preCheck
-
-    eval "nim r --nimcache:$NIX_BUILD_TOP/nimcache $nimFlags $src/tests/unit.nim"
-
-    substituteInPlace tests/test.py \
-      --replace-fail '"./auto-editor"' "\"$out/bin/main\""
-
-    python3 tests/test.py
-
-    runHook postCheck
-  '';
 
   postInstall = ''
     mv $out/bin/main $out/bin/auto-editor

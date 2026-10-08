@@ -2,12 +2,13 @@
   lib,
   rustPlatform,
   fetchFromGitHub,
+  sqlite,
   nix-update-script,
   versionCheckHook,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "dix";
-  version = "2.0.1";
+  version = "2.2.0";
 
   __structuredAttrs = true;
 
@@ -15,13 +16,17 @@ rustPlatform.buildRustPackage (finalAttrs: {
     owner = "manic-systems";
     repo = "dix";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-KTlFgBEVKJIXymfN2UU8hvGM71PYRcNgJ1XWUmG2AI4=";
+    hash = "sha256-U7zKSFQsmAkG4Um0DxgkgsGKh+/MqT1H3llUVd/i8UE=";
   };
 
-  cargoHash = "sha256-pNkSdsxOpv0E/xXs7tMg2vtP0PBU7p8fh3H4IX/u5k4=";
+  cargoHash = "sha256-m2jRDMjZTJHKbe0Ep76SFT3tV1xytThvaRAt6A0CF3A=";
+
+  buildInputs = [ sqlite ];
 
   nativeInstallCheckInputs = [ versionCheckHook ];
   doInstallCheck = true;
+
+  env.LIBSQLITE3_SYS_USE_PKG_CONFIG = 1;
 
   passthru.updateScript = nix-update-script { };
 

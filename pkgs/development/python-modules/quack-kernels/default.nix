@@ -21,7 +21,7 @@
 }:
 buildPythonPackage (finalAttrs: {
   pname = "quack-kernels";
-  version = "0.5.2";
+  version = "0.6.5";
   pyproject = true;
   __structuredAttrs = true;
 
@@ -29,7 +29,7 @@ buildPythonPackage (finalAttrs: {
     owner = "Dao-AILab";
     repo = "quack";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-iIINpP6teFPQFvxwfDYLPhIOFSqw3A6Nita/FjVFiBM=";
+    hash = "sha256-5wk0P8GJj+fFPiCbpZJeFeDOqdKoq8vy543bSTOh1W8=";
   };
 
   build-system = [

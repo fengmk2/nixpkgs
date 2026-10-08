@@ -13,6 +13,7 @@
   exiv2,
   fontconfig,
   giflib,
+  ffmpeg,
   libheif,
   libjpeg,
   libwebp,
@@ -26,6 +27,7 @@
   libdrm,
   luajit,
   openexr,
+  openjpeg,
   bash-completion,
   testers,
   nix-update-script,
@@ -33,13 +35,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "swayimg";
-  version = "5.2";
+  version = "5.6";
 
   src = fetchFromGitHub {
     owner = "artemsen";
     repo = "swayimg";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-aDZ7Ka8uKVLzEwxS2CT5fRFNDf9z/LO3bB0dCMz1Mf0=";
+    hash = "sha256-R+tdrKnQXLMu+nrcZRiH9SoiMYoV2LTFHS+jYXLJb7g=";
   };
 
   strictDeps = true;
@@ -68,6 +70,7 @@ stdenv.mkDerivation (finalAttrs: {
     exiv2
     fontconfig
     giflib
+    ffmpeg
     libheif
     libjpeg
     libwebp
@@ -81,6 +84,7 @@ stdenv.mkDerivation (finalAttrs: {
     libdrm
     luajit
     openexr
+    openjpeg
   ];
 
   passthru = {

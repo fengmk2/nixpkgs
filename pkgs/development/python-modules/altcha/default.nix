@@ -8,14 +8,14 @@
 
 buildPythonPackage (finalAttrs: {
   pname = "altcha";
-  version = "2.0.0";
+  version = "2.2.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "altcha-org";
     repo = "altcha-lib-py";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-k5vy6lalC3idiquXbDCwF+mObzja/QC3PRBGQJMZ6fA=";
+    hash = "sha256-Lg28eGXVTwt8L/3fUZw/9Gn5BObM30YtJdLEaDt56Gc=";
   };
 
   build-system = [ setuptools ];

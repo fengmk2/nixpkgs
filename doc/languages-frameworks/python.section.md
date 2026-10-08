@@ -163,8 +163,85 @@ following are specific to `buildPythonPackage`:
 
 * `catchConflicts ? true`: If `true`, abort package build if a package name
   appears more than once in dependency tree. Default is `true`.
-* `disabled ? false`: If `true`, package is not built for the particular Python
-  interpreter version.
+* `disabled ? false`:
+  If set to `true` for a particular Python interpreter version or implementation, the package is marked with `meta.problems.unsupportedPython`, and will throw an error message complaining the Python interpreter being unsupported during package instantiation.
+
+  ```nix
+  {
+    lib,
+    pythonAtLeast,
+    buildPythonPackage,
+    fetchFromGitHub,
+    setuptools,
+  }:
+  buildPythonPackage (finalAttrs: {
+    pname = "coconut";
+    version = "3.1.2";
+    pyproject = true;
+
+    src = fetchFromGitHub {
+      owner = "evhub";
+      repo = "coconut";
+      tag = "v${finalAttrs.version}";
+      hash = "sha256-Vd6ZY3PlbPOy63/0/0YJ1U2PpsVdctOoInyKftj//cM=";
+    };
+
+    disabled = pythonAtLeast "3.13";
+
+    build-system = [
+      setuptools
+    ];
+
+    meta = {
+      homepage = "http://coconut-lang.org/";
+    };
+  })
+  ```
+
+  One can also choose to mark a package with `meta.problems.unsupportedPython` providing a custom `message` and optional `urls`:
+
+  ```nix
+  {
+    lib,
+    python,
+    pythonAtLeast,
+    buildPythonPackage,
+    fetchFromGitHub,
+    setuptools,
+  }:
+  buildPythonPackage (finalAttrs: {
+    pname = "coconut";
+    version = "3.1.2";
+    pyproject = true;
+
+    src = fetchFromGitHub {
+      owner = "evhub";
+      repo = "coconut";
+      tag = "v${finalAttrs.version}";
+      hash = "sha256-Vd6ZY3PlbPOy63/0/0YJ1U2PpsVdctOoInyKftj//cM=";
+    };
+
+    build-system = [
+      setuptools
+    ];
+
+    meta = {
+      homepage = "http://coconut-lang.org/";
+      problems.unsupportedPython = lib.optionalAttrs (pythonAtLeast "3.13") {
+        message = lib.removePrefix (python.libPrefix + "-") finalAttrs.name + " requires Python <3.13";
+        urls = [
+          "https://github.com/evhub/coconut/issues/873"
+        ];
+      };
+    };
+  })
+  ```
+
+  ::: {.note}
+  Referencing `<pkg>.disabled` or `finalAtts.disabled` for Python packages are deprecated.
+  Use `<pkg> ? meta.problems.unsupportedPython` instead (the same goes with `finalAttrs`).
+  :::
+
 * `dontWrapPythonPrograms ? false`: Skip wrapping of Python programs.
 * `permitUserSite ? false`: Skip setting the `PYTHONNOUSERSITE` environment
   variable in wrapped programs.
@@ -204,25 +281,9 @@ following are specific to `buildPythonPackage`:
 * `setupPyGlobalFlags ? []`: List of flags passed to `setup.py` command.
 * `setupPyBuildFlags ? []`: List of flags passed to `setup.py build_ext` command.
 
-##### Using fixed-point arguments {#buildpythonpackage-fixed-point-arguments}
+##### Writing override-compatible packages {#buildpythonpackage-fixed-point-arguments}
 
-Both `buildPythonPackage` and `buildPythonApplication` support [fixed-point arguments](#chap-build-helpers-finalAttrs), similar to `stdenv.mkDerivation`.
-This allows you to reference the final attributes of the derivation.
-
-Instead of using `rec`:
-
-```nix
-buildPythonPackage rec {
-  pname = "pyspread";
-  version = "2.4";
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-...";
-  };
-}
-```
-
-You can use the `finalAttrs` pattern:
+Use `finalAttrs` to make a package easy to update and override:
 
 ```nix
 buildPythonPackage (finalAttrs: {
@@ -236,7 +297,9 @@ buildPythonPackage (finalAttrs: {
 })
 ```
 
-See the [general documentation on fixed-point arguments](#chap-build-helpers-finalAttrs) for more details on the benefits of this pattern.
+When a downstream callsite *overrides* `version` the override becomes visible as `finalAttrs.version`.
+
+Both `buildPythonPackage` and `buildPythonApplication` support [fixed-point arguments](#chap-build-helpers-finalAttrs), similar to `stdenv.mkDerivation`.
 
 ::: {.note}
 
@@ -340,8 +403,8 @@ the packages with the version of the interpreter. Because this is irrelevant for
 applications, the prefix is omitted.
 
 When packaging a Python application with [`buildPythonApplication`](#buildpythonapplication-function), it should be
-called with `callPackage` and passed `python3` or `python3Packages` (possibly
-specifying an interpreter version), like this:
+called with `callPackage` and passed `python3` or `python3Packages` (or possibly
+specifying an interpreter version such as `python313Packages`), like this:
 
 ```nix
 {
@@ -1628,7 +1691,7 @@ looked at how you can create environments in which specified packages are
 available.
 
 At some point you'll likely have multiple packages which you would
-like to be able to use in different projects. In order to minimise unnecessary
+like to be able to use in different projects. To minimise unnecessary
 duplication we now look at how you can maintain a repository with your
 own packages. The important functions here are `import` and `callPackage`.
 
@@ -1875,7 +1938,7 @@ pkgs.mkShell rec {
     pythonPackages.numpy
     pythonPackages.requests
 
-    # In this particular example, in order to compile any binary extensions they may
+    # In this particular example, to compile any binary extensions they may
     # require, the Python modules listed in the hypothetical requirements.txt need
     # the following packages to be installed locally:
     taglib
@@ -2106,7 +2169,7 @@ See also [contributing section](#contributing).
 ### Are Python interpreters built deterministically? {#deterministic-builds}
 
 The Python interpreters are now built deterministically. Minor modifications had
-to be made to the interpreters in order to generate deterministic bytecode. This
+to be made to the interpreters to generate deterministic bytecode. This
 has security implications and is relevant for those using Python in a
 `nix-shell`.
 

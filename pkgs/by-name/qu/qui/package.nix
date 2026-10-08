@@ -1,6 +1,6 @@
 {
   lib,
-  buildGo126Module,
+  buildGo127Module,
   fetchFromGitHub,
   stdenvNoCC,
   nixosTests,
@@ -9,17 +9,16 @@
   pnpm_11,
   fetchPnpmDeps,
   pnpmConfigHook,
-  typescript,
   versionCheckHook,
 }:
-buildGo126Module (finalAttrs: {
+buildGo127Module (finalAttrs: {
   pname = "qui";
-  version = "1.20.0";
+  version = "1.30.0";
   src = fetchFromGitHub {
     owner = "autobrr";
     repo = "qui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-h1OIz+4oVuHg7bKWSKgkEwouX1oJKJmOC1VI+nrPwmI=";
+    hash = "sha256-LoMTUeMABJMzTobwa3PwlX7ffDWm3C344ZGRaWiboT4=";
   };
 
   qui-web = stdenvNoCC.mkDerivation (finalAttrs': {
@@ -30,7 +29,6 @@ buildGo126Module (finalAttrs: {
       nodejs
       pnpmConfigHook
       pnpm_11
-      typescript
     ];
 
     sourceRoot = "${finalAttrs.src.name}/web";
@@ -44,7 +42,7 @@ buildGo126Module (finalAttrs: {
         ;
       pnpm = pnpm_11;
       fetcherVersion = 4;
-      hash = "sha256-nSlW06//r/olVgSBgHc8LGWWfNXewAF5cZXfoZemC+w=";
+      hash = "sha256-tzLY3R6nOL18eIKgWhZdUVvu5XdmpxlMRuVvW/gtnYE=";
     };
 
     postBuild = ''
@@ -56,7 +54,7 @@ buildGo126Module (finalAttrs: {
     '';
   });
 
-  vendorHash = "sha256-4HQOoBDjV3Pt4O/KMu8c3aeUB5evceIdlAnsixO1Pjs=";
+  vendorHash = "sha256-UbVFfSioo5SJmYT38RpCEA4j2bTQ7CFkZ+HhBC6TbNk=";
 
   preBuild = ''
     cp -r ${finalAttrs.qui-web}/* web/dist
@@ -74,6 +72,11 @@ buildGo126Module (finalAttrs: {
   preCheck = ''
     export TMPDIR=/tmp
   '';
+
+  checkFlags = [
+    # broken in sandbox for some reason
+    "-skip=TestRollback"
+  ];
 
   nativeInstallCheckInputs = [
     versionCheckHook

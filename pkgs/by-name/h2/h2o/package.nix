@@ -4,33 +4,36 @@
   fetchFromGitHub,
   pkg-config,
   cmake,
-  makeWrapper,
+  makeBinaryWrapper,
   ninja,
   perl,
   perlPackages,
-  brotli,
   openssl,
   libcap,
   libuv,
   wslay,
   zlib,
+  withBrotli ? true,
+  brotli,
   withMruby ? true,
   bison,
   ruby,
   withUring ? stdenv.hostPlatform.isLinux,
   liburing,
+  withZstandard ? true,
+  zstd,
   nixosTests,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "h2o";
-  version = "2.3.0-rolling-2026-06-22";
+  version = "2.3.0-rolling-2026-09-10";
 
   src = fetchFromGitHub {
     owner = "h2o";
     repo = "h2o";
-    rev = "f12fb3cca02ba31e89c87bc90041fe800dbed3f2";
-    hash = "sha256-OJ/MF6A6lcxWKgcOntCVc0fkcnQ9FJx8Wn2Pewz0h84=";
+    rev = "cac7e6568ad98a848f099ecd0a18b881f632479a";
+    hash = "sha256-ohdJtdxqSeCp4oMbx9LUfEP0sZ2hX+DsNgGz5ZUgq0U=";
   };
 
   outputs = [
@@ -43,15 +46,17 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     pkg-config
     cmake
-    makeWrapper
+    makeBinaryWrapper
     ninja
     perlPackages.JSON
   ]
+  ++ lib.optional withBrotli brotli
   ++ lib.optionals withMruby [
     bison
     ruby
   ]
-  ++ lib.optional withUring liburing;
+  ++ lib.optional withUring liburing
+  ++ lib.optional withZstandard zstd;
 
   buildInputs = [
     brotli
@@ -61,10 +66,14 @@ stdenv.mkDerivation (finalAttrs: {
     perl
     zlib
     wslay
-  ];
+  ]
+  ++ lib.optional withBrotli brotli
+  ++ lib.optional withZstandard zstd;
 
   cmakeFlags = [
-    "-DWITH_MRUBY=${if withMruby then "ON" else "OFF"}"
+    (lib.cmakeBool "WITH_BROTLI" withBrotli)
+    (lib.cmakeBool "WITH_MRUBY" withMruby)
+    (lib.cmakeBool "WITH_ZSTD" withZstandard)
   ];
 
   postInstall = ''

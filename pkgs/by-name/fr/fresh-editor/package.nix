@@ -7,21 +7,22 @@
   pkg-config,
   openssl,
   gitMinimal,
+  python3,
   nix-update-script,
   versionCheckHook,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "fresh";
-  version = "0.3.10";
+  version = "0.5.2";
 
   src = fetchFromGitHub {
     owner = "sinelaw";
     repo = "fresh";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-5gMrQOhQVyIJuv5QAPOyiTFcY4RntmQV0Mtue1x8aAs=";
+    hash = "sha256-g+G/g7Q5jFl7CPsodHQPBimg99BHXiezW01hYLfwI8c=";
   };
 
-  cargoHash = "sha256-5QHNIt7PoB2IhQU6IyL5Ljax0/CzVMHvMcNDfM9st7U=";
+  cargoHash = "sha256-Q4Vf8i8jOr6H1rYXiQHc7TAckzk49512THkjDgKiPes=";
 
   __structuredAttrs = true;
 
@@ -32,6 +33,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   ];
 
   nativeCheckInputs = [
+    python3
     gitMinimal
     rustPlatform.bindgenHook
   ];
@@ -46,8 +48,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   postInstall = ''
     wrapProgram $out/bin/${finalAttrs.meta.mainProgram} \
-      --add-flags "--no-upgrade-check"
-    rm -rf $out/bin/fresh.dSYM
+      --add-flags "--no-upgrade-check" \
+      --prefix PATH : ${lib.makeBinPath [ python3 ]}
   '';
 
   # Tests create a local http server to check update functionality
@@ -57,11 +59,15 @@ rustPlatform.buildRustPackage (finalAttrs: {
   checkFlags = [
     "--skip=e2e::"
     "--skip=services::plugins::embedded::tests::test_extract_plugins"
+    # require network access
+    "--skip=services::release_checker::tests::the_release_feed_override_is_shared_by_check_and_update"
   ];
   cargoTestFlags = [
     "--lib"
     "--bins"
   ];
+  # cfg(debug_assertions) is not set for release builds, so we need to run tests in debug mode to get the assertions enabled.
+  checkType = "debug";
 
   doInstallCheck = true;
   nativeInstallCheckInputs = [ versionCheckHook ];
@@ -69,10 +75,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
   passthru.updateScript = nix-update-script { };
 
   meta = {
-    description = "Terminal-based text editor with LSP support and TypeScript plugins";
-    homepage = "https://github.com/sinelaw/fresh";
+    description = "Terminal based IDE & text editor: easy, powerful and fast";
+    homepage = "https://getfresh.dev";
     changelog = "https://github.com/sinelaw/fresh/releases/tag/v${finalAttrs.version}";
-    license = lib.licenses.gpl2Only;
+    license = lib.licenses.gpl3Plus;
     maintainers = with lib.maintainers; [
       chillcicada
       dwt
@@ -80,8 +86,5 @@ rustPlatform.buildRustPackage (finalAttrs: {
     ];
     mainProgram = "fresh";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
-    sourceProvenance = with lib.sourceTypes; [
-      fromSource
-    ];
   };
 })

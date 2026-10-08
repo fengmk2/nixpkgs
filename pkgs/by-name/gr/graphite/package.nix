@@ -12,7 +12,6 @@
   lld,
   pkg-config,
   binaryen,
-  wasm-pack,
   cargo-about,
   nodejs,
   wasm-bindgen-cli_0_2_121,
@@ -30,16 +29,16 @@
 }:
 
 let
-  version = "0-unstable-2026-06-15";
-  rev = "34e0fd77574c30749d00d775df87a7e9362e7ce8";
+  version = "0-unstable-2026-10-05";
+  rev = "e38fab22455c45068fcd1eb976afb0c088fa222d";
 
-  srcHash = "sha256-SyxteWavvyeRtKcGuJkOxojstJk1C2ndbNERuSM3Cng=";
-  shaderHash = "sha256-4lKBrGh1rfhTBczmCDvIF2KxLyEHzHdKVGgQ+jLd/Dw=";
-  cargoHash = "sha256-KktJj1c/OrJazNk40NND8irmNd30nzpZOxdwaTAqjIs=";
-  npmHash = "sha256-AX5Jqk2E+WyQJyHbgvvq74MRsYmWUju4bOkabhYoeig=";
+  srcHash = "sha256-lKNJwRJRrtLh/0cQNFnBss2DYZp8UkoP0pkI1pQEB0Y=";
+  shaderHash = "sha256-SBJt5iEBvHM4cirnrBVUHtC0bnw8ZUQW9oEs6P02AKc=";
+  cargoHash = "sha256-5WhnrB+8eZSQ1dPJlG+pFffR3VF12NUkCn0AAoDByYM=";
+  npmHash = "sha256-VUNW+YfBvJc3EyigULBdv4Uqb+vKgTjrDMOAVk1DCvI=";
 
-  brandingRev = "0d004aa61e6b48d316e8e5db6d59ccc4788f192d";
-  brandingHash = "sha256-wAA6fR+NSxlCAqgwWmpiIAnji9k/jsMXpR0Vt04Ntmk=";
+  brandingRev = "6687dc6d3d8552948458d00d35e2bee3a40ab66b";
+  brandingHash = "sha256-yD4O50gz2mtby1h4o+9PqjMfYmTbBOX6XDc5Ez5fgnY=";
 
   src = fetchFromGitHub {
     owner = "GraphiteEditor";
@@ -97,7 +96,6 @@ stdenv.mkDerivation (finalAttrs: {
     npmHooks.npmConfigHook
     binaryen
     wasm-bindgen-cli_0_2_121
-    wasm-pack
     nodejs
     cargo-about
     removeReferencesTo
@@ -187,12 +185,13 @@ stdenv.mkDerivation (finalAttrs: {
     # which are licensed under the separate Graphite Branding License.
     license = with lib.licenses; [
       asl20
-      {
+      (mkLicense {
+        shortName = "graphite";
         fullName = "Graphite Branding License";
         url = "https://graphite.art/license/#branding";
         free = false;
         redistributable = true;
-      }
+      })
     ];
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ timon ];
