@@ -13,13 +13,13 @@
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "clash-rs";
-  version = "0.10.6";
+  version = "0.10.10";
 
   src = fetchFromGitHub {
     owner = "Watfaq";
     repo = "clash-rs";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-ncMJxVNHAgeXWhqZgWt3nth4BXqrrBaAEWmOVF/KsPg=";
+    hash = "sha256-RmxAi+0tgCAubwUTWv9w77yBdeIoEvYVxxyeHAe4Nbo=";
   };
 
   patches = [
@@ -27,13 +27,13 @@ rustPlatform.buildRustPackage (finalAttrs: {
     ./skip-npm-ci.patch
   ];
 
-  cargoHash = "sha256-WI+wg6cu0cBFrZYyN3GXlfHOmo/cVo2uMLn1D5YTOCQ=";
+  cargoHash = "sha256-lJh/m6Ibgny1qFeeo3SDFJWXbZ/BX12/LX/m6g6RJZE=";
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src;
     sourceRoot = "${finalAttrs.src.name}/clash-dashboard";
-    hash = "sha256-8fDeO7Yx+m2s0mzTO7MkQOQ0UYs8B2vFnNevHHZFghc=";
+    hash = "sha256-WZjV7wcuQKCfe9aRN06wuId2Ql9wLB97e1SOCeLMIKo=";
   };
 
   npmRoot = "clash-dashboard";

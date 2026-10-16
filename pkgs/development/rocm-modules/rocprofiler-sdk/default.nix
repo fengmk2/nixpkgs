@@ -56,7 +56,7 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
+    tag = "rocm-${finalAttrs.version}";
     hash = "sha256-SQjV1FnAgnK1LS5SiApgfvDSjB3AKpucja+PBZSmLvQ=";
     fetchSubmodules = true;
     sparseCheckout = [
@@ -142,6 +142,12 @@ stdenv.mkDerivation (finalAttrs: {
     # "[rocprofiler-sdk] Migrate from glog to Abseil Logging (#4668)", which
     # is too invasive (40 files + new abseil submodule) to backport.
     ./0009-rocprofiler-sdk-guard-ompt-auto-start.patch
+
+    # fmt v12.2.0 changed the structure of fmt/core.h, so this switches uses of
+    # fmt/core.h to fmt/format.h. backport of the relevant parts of
+    # https://github.com/ROCm/rocm-systems/commit/e2f588592ecfb0653ed5b3078753186325adf70a
+    # as upstream has changed significantly since 7.2.3.
+    ./0010-fmt-12.2.0-format.h.patch
   ];
 
   postPatch = ''

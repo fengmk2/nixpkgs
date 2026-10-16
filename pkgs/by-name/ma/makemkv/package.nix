@@ -4,7 +4,7 @@
   curl,
   expat,
   fetchurl,
-  ffmpeg,
+  ffmpeg_8,
   lib,
   stdenv,
   qt5,
@@ -24,22 +24,22 @@ stdenv.mkDerivation (
     # Using two URLs as the first one will break as soon as a new version is released
     srcs.bin = fetchurl {
       urls = [
-        "http://www.makemkv.com/download/makemkv-bin-${version}.tar.gz"
-        "http://www.makemkv.com/download/old/makemkv-bin-${version}.tar.gz"
+        "https://www.makemkv.com/download/makemkv-bin-${version}.tar.gz"
+        "https://www.makemkv.com/download/old/makemkv-bin-${version}.tar.gz"
       ];
-      hash = "sha256-we5yCukbJ2p8ib6GEUbFuTRjGDHo1sj0U0BkNXJOkr0=";
+      hash = "sha256-8SZedIdaGG79+7vsdFmmTpaQM1FeU8vE2AXwo3TwoSQ=";
     };
     srcs.oss = fetchurl {
       urls = [
-        "http://www.makemkv.com/download/makemkv-oss-${version}.tar.gz"
-        "http://www.makemkv.com/download/old/makemkv-oss-${version}.tar.gz"
+        "https://www.makemkv.com/download/makemkv-oss-${version}.tar.gz"
+        "https://www.makemkv.com/download/old/makemkv-oss-${version}.tar.gz"
       ];
-      hash = "sha256-vIuwhK46q81QPVu5PvwnPgRuT9RmPTmpg2zgwEf+6CM=";
+      hash = "sha256-Q1MWstIZ60jIgFJlV63dB2tfXm3lFxQkx2UfnKyVsWE=";
     };
   in
   {
     pname = "makemkv";
-    version = "1.18.3";
+    version = "2.0.0";
 
     srcs = lib.attrValues finalAttrs.passthru.srcs;
     sourceRoot = "makemkv-oss-${version}";
@@ -58,7 +58,7 @@ stdenv.mkDerivation (
     ];
     buildInputs = [
       expat
-      ffmpeg
+      ffmpeg_8
       openssl
       qt5.qtbase
       zlib

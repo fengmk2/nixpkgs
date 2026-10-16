@@ -13,26 +13,22 @@ vscode-utils.buildVscodeMarketplaceExtension {
       sources = {
         "x86_64-linux" = {
           arch = "linux-x64";
-          hash = "sha256-VZKvoTJ/IKxYsEJl0XhtglsggmrYdaRUlXCpDv/9fQ0=";
-        };
-        "x86_64-darwin" = {
-          arch = "darwin-x64";
-          hash = "sha256-jo+fET/IyOl2zI/xxYy3KwnyOegTOXFhO1hDg5QtWrQ=";
+          hash = "sha256-41D15WSCK67DK1ArIOgbApndYYq6X0Br1cDajjkhHsE=";
         };
         "aarch64-linux" = {
           arch = "linux-arm64";
-          hash = "sha256-HOSKZjozJlWn++P5bSwWdK3I+fgsPtS8kyvDWHMJQAY=";
+          hash = "sha256-gWBEMWsootSivCnPI0q0VqMvw3vaQUS+AYTrGd9mV20=";
         };
         "aarch64-darwin" = {
           arch = "darwin-arm64";
-          hash = "sha256-ABBYsSR3HQgSnnXUJXsg1DwqwFj9W6CT59/1fuqWsTc=";
+          hash = "sha256-Qs3+dRfHs3iZ+mS1uj6o4vPrMF66NgH/8Xmpyo6vTeE=";
         };
       };
     in
     {
       name = "visualjj";
       publisher = "visualjj";
-      version = "0.29.0";
+      version = "0.35.4";
     }
     // sources.${stdenvNoCC.hostPlatform.system}
       or (throw "Unsupported system ${stdenvNoCC.hostPlatform.system}");
@@ -48,14 +44,14 @@ vscode-utils.buildVscodeMarketplaceExtension {
 
   meta = {
     description = "Jujutsu version control integration, for simpler Git workflow";
-    downloadPage = "https://www.visualjj.com";
     homepage = "https://www.visualjj.com";
+    downloadPage = "https://marketplace.visualstudio.com/items?itemName=visualjj.visualjj";
+    changelog = "https://marketplace.visualstudio.com/items/visualjj.visualjj/changelog";
     license = lib.licenses.unfree;
     platforms = [
       "aarch64-linux"
       "aarch64-darwin"
       "x86_64-linux"
-      "x86_64-darwin"
     ];
     maintainers = with lib.maintainers; [ sandarukasa ];
   };

@@ -124,6 +124,16 @@ let
   jobScripts = concatLists (
     mapAttrsToList (_: unit: unit.jobScripts or [ ]) (filterAttrs (_: v: v.enable) cfg.services)
   );
+  unitEnv = pkgs.buildEnv {
+    name = "initrd-unit-env";
+    paths = concatLists (
+      mapAttrsToList (_: unit: unit.path or [ ]) (filterAttrs (_: v: v.enable) cfg.services)
+    );
+    pathsToLink = [
+      "/bin"
+      "/sbin"
+    ];
+  };
 
   stage1Units = generateUnits {
     type = "initrd";
@@ -219,7 +229,7 @@ in
         KExecWatchdogSec = "5min";
       };
       description = ''
-        Options for the global systemd service manager used in initrd. See {manpage}`systemd-system.conf(5)` man page
+        Options for the global systemd service manager used in initrd. See {manpage}`systemd-system.conf(5)`
         for available options.
       '';
     };
@@ -301,10 +311,19 @@ in
       example = "gpt-auto";
       description = ''
         Controls how systemd will interpret the root FS in initrd. See
-        {manpage}`kernel-command-line(7)`. NixOS currently does not
-        allow specifying the root file system itself this
-        way. Instead, the `fstab` value is used in order to interpret
-        the root file system specified with the `fileSystems` option.
+        the description of the `root=` argument in {manpage}`kernel-command-line(7)`.
+
+        When set to "gpt-auto", {manpage}`systemd-gpt-auto-generator(8)`
+        automatically discovers and mounts the root, EFI System (ESP),
+        swap, and various other partitions based on their partition
+        type, allowing them to be effectively omitted from
+        {option}`fileSystems.<name>`.
+        Note however that {option}`boot.initrd.supportedFilesystems`
+        will not be inferred for partitions without an explicit
+        {option}`fileSystems.<name>.fsType`, therefore the filesystem
+        names of all partitions mounted through "gpt-auto" must be
+        manually appended to `supportedFilesystems`.
+
         If root shall be omitted, set this option to `null`.
       '';
     };
@@ -636,6 +655,7 @@ in
         "${pkgs.bashNonInteractive}/bin"
       ]
       ++ jobScripts
+      ++ [ unitEnv ]
       ++ map (c: removeAttrs c [ "text" ]) (builtins.attrValues cfg.contents)
       ++ lib.optional (pkgs.stdenv.hostPlatform.libc == "glibc") "${pkgs.glibc}/lib/libnss_files.so.2";
 

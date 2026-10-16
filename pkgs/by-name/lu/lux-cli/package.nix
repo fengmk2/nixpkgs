@@ -1,12 +1,13 @@
 {
+  stdenv,
+  buildPackages,
   fetchFromGitHub,
   gnupg,
   gpgme,
   installShellFiles,
   lib,
-  libgit2,
   libgpg-error,
-  lua5_4,
+  lua5_5,
   makeWrapper,
   nix,
   openssl,
@@ -18,18 +19,18 @@
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "lux-cli";
 
-  version = "0.32.0";
+  version = "0.45.2";
 
   src = fetchFromGitHub {
     owner = "lumen-oss";
     repo = "lux";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-4S0kjWQ3Ckrgvh8biSkEU7jA2hwG+t3oHN6h1937xgY=";
+    hash = "sha256-pcja7xJX2ONZUG9VbmeAJfmvg9VAZ51xrZDNz0IMe18=";
   };
 
   buildAndTestSubdir = "lux-cli";
 
-  cargoHash = "sha256-eE5LKDRjSZ6IfPY/veTyZ7Lnlvl4WtULo6knRGFPRa4=";
+  cargoHash = "sha256-DUbbV7pyGxmnQ1I/KuiUQ0oUf5JJ1pPzo+6rApe0TLo=";
 
   nativeInstallCheckInputs = [
     versionCheckHook
@@ -47,14 +48,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
   buildInputs = [
     gnupg
     gpgme
-    libgit2
     libgpg-error
-    lua5_4
     openssl
   ];
 
   env = {
-    LIBGIT2_NO_VENDOR = 1;
     LIBSSH2_SYS_USE_PKG_CONFIG = 1;
     LUX_SKIP_IMPURE_TESTS = 1; # Disable impure unit tests
   };
@@ -63,19 +61,34 @@ rustPlatform.buildRustPackage (finalAttrs: {
     "--lib" # Disable impure integration tests
   ];
 
+  checkInputs = [
+    lua5_5 # Test suite uses pkg-config to find Lua libs
+  ];
+
   nativeCheckInputs = [
-    lua5_4
+    lua5_5
     nix
   ];
 
-  postBuild = ''
-    cargo xtask dist-man
-    cargo xtask dist-completions
-  '';
-
   postInstall = ''
-    installManPage target/dist/lx.1
-    installShellCompletion target/dist/lx.{bash,fish} --zsh target/dist/_lx
+    ${
+      # Using lx to generate man pages and completions is faster than xtask
+      if stdenv.hostPlatform.emulatorAvailable buildPackages then
+        let
+          lx = "${stdenv.hostPlatform.emulator buildPackages} $out/bin/lx";
+        in
+        ''
+          ${lx} util man --target-dir="target/dist"
+          ${lx} util completion --target-dir="target/dist"
+        ''
+      else
+        ''
+          cargo xtask dist-man
+          cargo xtask dist-completions
+        ''
+    }
+      installManPage target/dist/*.1
+      installShellCompletion target/dist/lx.{bash,fish} --zsh target/dist/_lx
   '';
 
   meta = {

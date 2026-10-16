@@ -12,7 +12,7 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "dprint";
-  version = "0.54.0";
+  version = "0.60.1";
 
   # Prefer repository rather than crate here
   #   - They have Cargo.lock in the repository
@@ -21,16 +21,19 @@ rustPlatform.buildRustPackage (finalAttrs: {
     owner = "dprint";
     repo = "dprint";
     tag = finalAttrs.version;
-    hash = "sha256-dNs2LQeEndeXS8xR9SXVFWT9PS+haB9SDZ+3PUPkFjg=";
+    hash = "sha256-frvCKrRWH2m1DhYf26LflyL5npG0xkcW9s9+Ji4Nl1Q=";
   };
 
-  cargoHash = "sha256-fmbO14eTObK1cZu9gDls25KRmzAJPGiqQ8uURGD2vV0=";
+  cargoHash = "sha256-wPN+gsanyM57BK9KYkRoFN3tf8ZboIaYf+pJxK2CW40=";
 
   nativeBuildInputs = [ installShellFiles ];
 
   # Avoiding "Undefined symbols" such as "___unw_remove_find_dynamic_unwind_sections" since dprint 0.50.1
   # Adding "libunwind" in buildInputs did not resolve it.
   env.RUSTFLAGS = lib.optionalString stdenv.hostPlatform.isDarwin "-C link-args=-Wl,-undefined,dynamic_lookup";
+
+  # Avoiding utils::url::test::* failures in the Darwin sandbox
+  __darwinAllowLocalNetworking = true;
 
   cargoBuildFlags = [
     "--package=dprint"

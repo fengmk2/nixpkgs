@@ -13,7 +13,7 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
+    tag = "rocm-${finalAttrs.version}";
     sparseCheckout = [
       "projects/hipblas-common"
       "shared"
@@ -36,7 +36,7 @@ stdenv.mkDerivation (finalAttrs: {
   meta = {
     description = "Common files shared by hipBLAS and hipBLASLt";
     homepage = "https://github.com/ROCm/rocm-libraries/tree/develop/projects/hipblas-common";
-    license = with lib.licenses; [ mit ];
+    license = lib.licenses.mit;
     teams = [ lib.teams.rocm ];
     platforms = lib.platforms.linux;
   };

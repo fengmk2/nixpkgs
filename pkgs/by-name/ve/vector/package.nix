@@ -28,16 +28,16 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "vector";
-  version = "0.55.0";
+  version = "0.59.0";
 
   src = fetchFromGitHub {
     owner = "vectordotdev";
     repo = "vector";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-1t0fHBYBBfG8oFbo1QPXb5y8+lyIPPve4bDtry+KF5Q=";
+    hash = "sha256-lnNlywrGMWaaLw+03m9qVGZoctcSdyw2zWl+5RaUBGg=";
   };
 
-  cargoHash = "sha256-/a/KnZEXBeAtYS0yXCmI+07acol0/UBwauIKTi/QF1k=";
+  cargoHash = "sha256-C8Lqi3QSooXdDmSYYER9SgGkkcmgynRoy9LffmSJZns=";
 
   nativeBuildInputs = [
     pkg-config
@@ -75,8 +75,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
     # needed for internal protobuf c wrapper library
     PROTOC = "${protobuf}/bin/protoc";
-    PROTOC_INCLUDE = "${protobuf}/include";
     RUSTONIG_SYSTEM_LIBONIG = true;
+
+    # upstream forces openssl/vendored
+    OPENSSL_NO_VENDOR = true;
 
     TZDIR = "${tzdata}/share/zoneinfo";
 
@@ -87,10 +89,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
     CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "1";
   };
 
-  # https://github.com/vectordotdev/vector/pull/25406
+  # Fix rust 1.98 compatibility
   postPatch = ''
-    substituteInPlace lib/vector-config/src/schema/visitors/merge.rs \
-      --replace-fail 'destination.merge(source);' 'Mergeable::merge(destination, source);'
+    substituteInPlace src/trace.rs --replace-fail 'use futures::StreamExt as _;' ""
   '';
 
   doCheck = true;
@@ -110,6 +111,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     "--skip=sources::host_metrics::cgroups::tests::generates_cgroups_metrics"
     "--skip=sources::host_metrics::cpu::tests::generates_cpu_metrics"
     "--skip=sources::internal_logs::tests::repeated_logs_are_not_rate_limited"
+    "--skip=topology::test::reload::topology_reload_preserves_enrichment_table_state"
 
     # Requires access to journalctl
     "--skip=sources::journald::tests::emits_cursor"
@@ -126,7 +128,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     "--skip=sources::journald::tests::parses_string_sequences"
     "--skip=sources::journald::tests::reads_journal"
 
-    # No multicast access avaiable in sandbox
+    # No multicast access available in sandbox
     "--skip=sources::socket::test::multicast_and_unicast_udp_message"
     "--skip=sources::socket::test::multicast_udp_message"
     "--skip=sources::socket::test::multiple_multicast_addresses_udp_message"

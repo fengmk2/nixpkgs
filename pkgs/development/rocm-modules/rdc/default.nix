@@ -64,7 +64,7 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
+    tag = "rocm-${finalAttrs.version}";
     sparseCheckout = [
       "projects/rdc"
       "shared"
@@ -143,7 +143,7 @@ stdenv.mkDerivation (finalAttrs: {
   meta = {
     description = "Simplifies administration and addresses infrastructure challenges in cluster and datacenter environments";
     homepage = "https://github.com/ROCm/rocm-systems/tree/develop/projects/rdc";
-    license = with lib.licenses; [ mit ];
+    license = lib.licenses.mit;
     teams = [ lib.teams.rocm ];
     platforms = lib.platforms.linux;
   };

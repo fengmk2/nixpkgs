@@ -4,7 +4,7 @@
   eudev,
   fetchFromGitHub,
   installShellFiles,
-  libdisplay-info,
+  libdisplay-info_0_3,
   libglvnd,
   libinput,
   libxkbcommon,
@@ -17,7 +17,7 @@
   rustPlatform,
   seatd,
   stdenv,
-  systemd,
+  systemdLibs,
   wayland,
   withDbus ? true,
   withDinit ? false,
@@ -58,7 +58,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   ];
 
   buildInputs = [
-    libdisplay-info
+    libdisplay-info_0_3
     libglvnd # For libEGL
     libinput
     libxkbcommon
@@ -69,7 +69,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   ]
   ++ lib.optional (withDbus || withScreencastSupport || withSystemd) dbus
   ++ lib.optional withScreencastSupport pipewire
-  ++ lib.optional withSystemd systemd # Includes libudev
+  ++ lib.optional withSystemd systemdLibs # Includes libudev
   ++ lib.optional (!withSystemd) eudev; # Use an alternative libudev implementation when building w/o systemd
 
   buildFeatures =

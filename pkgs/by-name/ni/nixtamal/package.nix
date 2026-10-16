@@ -11,6 +11,7 @@
   coreutils,
   curl,
   gawk,
+  nix,
   nix-prefetch-darcs,
   nix-prefetch-fossil,
   nix-prefetch-git,
@@ -21,7 +22,7 @@
 
 ocamlPackages.buildDunePackage (finalAttrs: {
   pname = "nixtamal";
-  version = "1.8.0";
+  version = "2.1.0";
   release_year = 2026;
 
   minimalOCamlVersion = "5.3";
@@ -30,13 +31,24 @@ ocamlPackages.buildDunePackage (finalAttrs: {
     url = "https://darcs.toastal.in.th/nixtamal/stable/";
     mirrors = [ "https://smeder.ee/~toastal/nixtamal.darcs" ];
     rev = finalAttrs.version;
-    hash = "sha256-75p+4hZtgsiUeOxRhLpg3l/0G/XS2uCCPF58KbGTqJ8=";
+    hash = "sha256-dx+0X9mKawQFB1KV/oceCajiUq9/DxeGcC6+FT3mJmc=";
   };
+
+  outputs = [
+    "bin"
+    "data"
+    "doc"
+    "lib"
+    "man"
+    "out"
+  ];
 
   nativeBuildInputs = [
     makeBinaryWrapper
     removeReferencesTo
     installShellFiles
+    # Compile-time preprocessing
+    ocamlPackages.ppx_deriving
     # Completions
     ocamlPackages.cmdliner
     # For manpages
@@ -48,32 +60,37 @@ ocamlPackages.buildDunePackage (finalAttrs: {
   buildInputs = with ocamlPackages; [
     cmdliner
     fmt
-    ppx_deriving_qcheck
   ];
 
   propagatedBuildInputs = with ocamlPackages; [
     camomile
     eio
     eio_main
+    eio_posix
     jingoo
     (jsont.override {
       withBrr = false;
       withBytesrw = true;
+      withTypegist = false;
     })
+    ppx_blob
     kdl
     logs
-    ppx_deriving
-    qcheck-core
     saturn
     stdint
-    uri
     xdg
+  ];
+
+  nativeCheckInputs = [
+    nix
   ];
 
   checkInputs = with ocamlPackages; [
     alcotest
+    ppx_deriving_qcheck
     qcheck
     qcheck-alcotest
+    qcheck-core
   ];
 
   postPatch = ''
@@ -82,15 +99,6 @@ ocamlPackages.buildDunePackage (finalAttrs: {
   '';
 
   doCheck = true;
-
-  outputs = [
-    "bin"
-    "data"
-    "doc"
-    "lib"
-    "man"
-    "out"
-  ];
 
   installPhase = ''
     runHook preInstall
@@ -105,6 +113,8 @@ ocamlPackages.buildDunePackage (finalAttrs: {
        --mandir="$man/share/man" \
        --libdir="$lib/lib/ocaml/${ocamlPackages.ocaml.version}/site-lib" \
        nixtamal
+
+    cp -r "$src/meta" "$src/ncl" "$data/share"/*/
 
     for dep in "${ocamlPackages.ocaml}" "${ocamlPackages.camomile}"; do
        remove-references-to -t "$dep" "$bin/bin/nixtamal"
@@ -142,7 +152,7 @@ ocamlPackages.buildDunePackage (finalAttrs: {
   };
 
   meta = {
-    license = with lib.licenses; [ gpl3Plus ];
+    license = lib.licenses.gpl3Plus;
     platforms = lib.platforms.unix;
     mainProgram = "nixtamal";
     outputsToInstall = [
@@ -168,5 +178,6 @@ ocamlPackages.buildDunePackage (finalAttrs: {
       • No experimental Nix features required
     '';
     maintainers = with lib.maintainers; [ toastal ];
+    donationPage = "https://nixtamal.toast.al/funding/";
   };
 })

@@ -1,8 +1,10 @@
 {
   lib,
+  stdenv,
   rustPlatform,
   llvmPackages,
   pkg-config,
+  installShellFiles,
   elfutils,
   zlib,
   zstd,
@@ -11,30 +13,34 @@
   libseccomp,
   nix-update-script,
   nixosTests,
+  openssl,
 }:
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "scx_rustscheds";
-  version = "1.1.1";
+  version = "1.1.2";
 
   src = fetchFromGitHub {
     owner = "sched-ext";
     repo = "scx";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-/EE1+mlbCQmeLqhbHM+k1JwrRw1Z1mOZmq/ffR1l4bg=";
+    hash = "sha256-igrmrfimVOEJnFxMr9ghN6lAHwEBSFLLVrB2MQ72PXI=";
   };
 
-  cargoHash = "sha256-1alU6Hl7wHM69JK1ZRWzhT843ROs0WhkBUuDDweZSvk=";
+  cargoHash = "sha256-CTEVdvw6aG/fFas2Fk3x9o4Sp2k3lHO/OLwUM8t9UjE=";
 
   nativeBuildInputs = [
     pkg-config
+    installShellFiles
     rustPlatform.bindgenHook
     protobuf
   ];
+
   buildInputs = [
     elfutils
     zlib
     zstd
     libseccomp
+    openssl
   ];
 
   env = {
@@ -45,6 +51,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
       "-C link-args=-lz"
       "-C link-args=-lzstd"
     ];
+    EXPECTED_SCHEDULERS = lib.concatStringsSep " " finalAttrs.passthru.schedulers;
   };
 
   hardeningDisable = [
@@ -55,13 +62,22 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # which is not available in the sandbox
   doCheck = false;
 
-  # we don't need these
   postInstall = ''
+    # we don't need these
     rm $out/bin/{scx_arena_selftests,vmlinux_docify,xtask}
+  ''
+  + lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+    installShellCompletion --cmd scxtop \
+      --bash <($out/bin/scxtop generate-completions --shell bash) \
+      --fish <($out/bin/scxtop generate-completions --shell fish) \
+      --zsh <($out/bin/scxtop generate-completions --shell zsh)
+    installShellCompletion --cmd scx_flow \
+      --bash <($out/bin/scx_flow --completions bash) \
+      --fish <($out/bin/scx_flow --completions fish) \
+      --zsh <($out/bin/scx_flow --completions zsh)
   '';
 
   __structuredAttrs = true;
-  EXPECTED_SCHEDULERS = finalAttrs.passthru.schedulers;
 
   doInstallCheck = true;
   installCheckPhase = ''
@@ -84,9 +100,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
     "scx_bpfland"
     "scx_cake"
     "scx_chaos"
+    "scx_characterize"
     "scx_cosmos"
     "scx_flash"
     "scx_flow"
+    "scx_forge"
     "scx_lavd"
     "scx_layered"
     "scx_mitosis"

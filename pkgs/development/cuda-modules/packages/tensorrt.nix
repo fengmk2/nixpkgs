@@ -46,7 +46,7 @@ buildRedist (
     ++ optionals (tensorrtOlder "10.14.1") [
       "samples"
     ]
-    ++ [
+    ++ optionals (tensorrtOlder "11.0.0") [
       "static"
       # "stubs" removed in postInstall
     ];
@@ -200,7 +200,7 @@ buildRedist (
       # the redistributables do. As such, we need to specify downloadPage manually.
       downloadPage = "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt";
       changelog = "https://docs.nvidia.com/deeplearning/tensorrt/latest/getting-started/release-notes.html#release-notes";
-      license = _cuda.lib.licenses.tensorrt;
+      license = lib.licenses.nvidiaTensorrt;
 
       knownVulnerabilities =
         # https://github.com/NixOS/nixpkgs/issues/522570

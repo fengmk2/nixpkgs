@@ -1,6 +1,6 @@
 {
   lib,
-  buildGoModule,
+  buildGo127Module,
   fetchFromGitHub,
   nix-update-script,
   nixosTests,
@@ -12,19 +12,20 @@
   withVmctl ? true, # vmctl is used to migrate time series
 }:
 
-buildGoModule (finalAttrs: {
+buildGo127Module (finalAttrs: {
   pname = "VictoriaMetrics";
-  version = "1.145.0";
+  version = "1.153.0";
 
   src = fetchFromGitHub {
     owner = "VictoriaMetrics";
     repo = "VictoriaMetrics";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-nKG2ei1Gn1mU5TtD5YLYUHaJrM4fSxm/uUdY4tIGeVE=";
+    hash = "sha256-mp6BEoTsG0MJMOEUOVX0NcNlQRYNBKdGADTIlkWfexw=";
   };
 
   vendorHash = null;
-  env.CGO_ENABLED = 0;
+  # cgo enabled to work around https://github.com/VictoriaMetrics/VictoriaMetrics/issues/11683
+  env.CGO_ENABLED = 1;
 
   subPackages =
     lib.optionals withServer [
@@ -60,7 +61,6 @@ buildGoModule (finalAttrs: {
     # Increase timeouts in tests to prevent failure on heavily loaded builders
     substituteInPlace lib/storage/storage_test.go \
       --replace-fail "time.After(10 " "time.After(120 " \
-      --replace-fail "time.NewTimer(30 " "time.NewTimer(120 " \
       --replace-fail "time.NewTimer(time.Second * 10)" "time.NewTimer(time.Second * 120)"
   '';
 
@@ -79,7 +79,13 @@ buildGoModule (finalAttrs: {
 
   passthru = {
     tests = lib.recurseIntoAttrs nixosTests.victoriametrics;
-    updateScript = nix-update-script { };
+    updateScript = nix-update-script {
+      extraArgs = [
+        # avoid pmm and -cluster releases
+        "--version-regex"
+        "v([0-9\\.]+)"
+      ];
+    };
   };
 
   meta = {

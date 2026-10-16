@@ -4,78 +4,107 @@
   melpaBuild,
   nix-update-script,
   stdenv,
-  zig_0_15,
+  zig_0_16,
   emacs,
+  xcbuild,
 }:
 
 let
-  zig = zig_0_15;
+  mkModule =
+    {
+      pname,
+      version,
+      src,
+      zig,
+      zigDeps,
+    }:
+    stdenv.mkDerivation (finalAttrs: {
+      inherit
+        pname
+        version
+        src
+        zig
+        zigDeps
+        ;
 
+      nativeBuildInputs = [ finalAttrs.zig ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ xcbuild ];
+
+      env.EMACS_INCLUDE_DIR = "${emacs}/include";
+
+      dontSetZigDefaultFlags = true;
+
+      doCheck = true;
+
+      zigCheckFlags = [
+        "-Dcpu=baseline"
+        # See https://github.com/ghostty-org/ghostty/blob/main/PACKAGING.md#build-options
+        "-Doptimize=ReleaseFast"
+      ];
+
+      zigBuildFlags = finalAttrs.zigCheckFlags;
+
+      postConfigure = ''
+        cp -rLT ${finalAttrs.zigDeps} "$ZIG_GLOBAL_CACHE_DIR/p"
+        chmod -R u+w "$ZIG_GLOBAL_CACHE_DIR/p"
+      '';
+
+      strictDeps = true;
+
+      __structuredAttrs = true;
+    });
+
+  libExt = stdenv.hostPlatform.extensions.sharedLibrary;
+in
+melpaBuild (finalAttrs: {
   pname = "ghostel";
 
-  version = "0.35.4-unstable-2026-06-19";
+  version = "0.56.0";
 
   src = fetchFromGitHub {
     owner = "dakra";
     repo = "ghostel";
-    rev = "adb010b7fec943405006fcd1fac280e74ffa9e30";
-    hash = "sha256-OI82g4uMTzlucH9DHNeDl7ppYzpNTjnhZ1SzlRe70Fw=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-NpfnlggAcThNw9uY7Uq4qFPEJ+md8aZ8i32CQSUKz+w=";
   };
 
-  module = stdenv.mkDerivation (finalAttrs: {
-    inherit pname version src;
-
-    deps = zig.fetchDeps {
-      inherit (finalAttrs) src pname version;
-      fetchAll = true;
-      hash = "sha256-CTsG3dXu3DECDbklBAtr2fYou82WNvQ1Q3JET0TmuyM=";
-    };
-
-    nativeBuildInputs = [ zig ];
-
-    env.EMACS_INCLUDE_DIR = "${emacs}/include";
-
-    dontSetZigDefaultFlags = true;
-
-    doCheck = true;
-
-    zigCheckFlags = [
-      "-Dcpu=baseline"
-      # See https://github.com/ghostty-org/ghostty/blob/main/PACKAGING.md#build-options
-      "-Doptimize=ReleaseFast"
-    ];
-
-    zigBuildFlags = finalAttrs.zigCheckFlags;
-
-    postConfigure = ''
-      cp -rLT ${finalAttrs.deps} "$ZIG_GLOBAL_CACHE_DIR/p"
-      chmod -R u+w "$ZIG_GLOBAL_CACHE_DIR/p"
-    '';
-  });
-
-  libExt = stdenv.hostPlatform.extensions.sharedLibrary;
-in
-melpaBuild {
-  inherit pname version src;
+  # these can be put into mkModule, but we put them here to ease user overrideAttrs
+  zig = zig_0_16;
+  zigDeps = finalAttrs.zig.fetchDeps {
+    inherit (finalAttrs) src pname version;
+    fetchAll = true;
+    hash = "sha256-87q0nSOkZaIHW8Ztgf5pR13sHNw7eQKJhu12QjRMTvA=";
+  };
 
   files = ''
-    (:defaults "etc" "ghostel-module${libExt}")
+    (:defaults "etc" "ghostel-module${libExt}" "ghostel-module.version")
   '';
 
   preBuild = ''
-    install ${module}/lib/libghostel-module${libExt} ghostel-module${libExt}
+    install ${finalAttrs.finalPackage.module}/ghostel-module${libExt} ghostel-module${libExt}
+    install --mode=444 ${finalAttrs.finalPackage.module}/ghostel-module.version ghostel-module.version
   '';
 
   passthru = {
-    updateScript = nix-update-script { extraArgs = [ "--version=branch=main" ]; };
+    updateScript = nix-update-script { };
 
-    inherit module;
+    module = mkModule {
+      pname = "${finalAttrs.pname}-module";
+      inherit (finalAttrs)
+        version
+        src
+        zig
+        zigDeps
+        ;
+    };
   };
 
   meta = {
     homepage = "https://github.com/dakra/ghostel";
     description = "Terminal emulator powered by libghostty";
-    maintainers = with lib.maintainers; [ vonfry ];
+    maintainers = with lib.maintainers; [
+      rohan-datar
+      vonfry
+    ];
     license = lib.licenses.gpl3Plus;
   };
-}
+})

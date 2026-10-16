@@ -11,7 +11,7 @@
   pytest-benchmark,
   pytest-cov-stub,
   redis,
-  setuptools,
+  setuptools_80,
   watchdog,
   watchdog-gevent,
 }:
@@ -28,7 +28,7 @@ buildPythonPackage rec {
     hash = "sha256-wUE3R/lFafP7P9tjKjFC+jwCc3jkvGeXunC8AhkBLbM=";
   };
 
-  build-system = [ setuptools ];
+  build-system = [ setuptools_80 ];
 
   dependencies = [ prometheus-client ];
 
@@ -100,7 +100,7 @@ buildPythonPackage rec {
   meta = {
     description = "Background Processing for Python 3";
     homepage = "https://github.com/Bogdanp/dramatiq";
-    license = lib.licenses.gpl3Only;
+    license = lib.licenses.lgpl3Plus;
     maintainers = with lib.maintainers; [ traxys ];
   };
 }
